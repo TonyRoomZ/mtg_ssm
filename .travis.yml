@@ -20,5 +20,6 @@ script:
   - pylint mtg_ssm
   - pylint --disable=similarities,redefined-outer-name tests
   - flake8
+  - pydocstyle
 
 after_script: coveralls
