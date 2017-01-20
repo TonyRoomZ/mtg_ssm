@@ -19,7 +19,7 @@ script:
   - pytest --verbose --cov=mtg_ssm
   - pylint mtg_ssm
   - pylint --disable=similarities,redefined-outer-name tests
-  - flake8
+  - flake8 --verbose
   - pydocstyle
 
 after_script: coveralls
