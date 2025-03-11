@@ -22,7 +22,7 @@ TEST_CARD_ID = UUID("57f25ead-b3ec-4c40-972d-d750ed2f5319")
 @pytest.fixture(scope="session")
 def oracle(scryfall_data: ScryfallDataSet) -> Oracle:
     """Test fixture Oracle with limited data."""
-    accepted_sets = {"phop", "pmbs", "pdci"}
+    accepted_sets = {"phop", "pmbs", "dci"}
     scryfall_data2 = ScryfallDataSet(
         sets=[s for s in scryfall_data.sets if s.code in accepted_sets],
         cards=[c for c in scryfall_data.cards if c.set in accepted_sets],
@@ -62,13 +62,13 @@ def test_rows_for_cards_verbose(oracle: Oracle) -> None:
     rows = csv_serializer.rows_for_cards(collection, True)
     assert list(rows) == [
         {
-            "set": "PDCI",
+            "set": "DCI",
             "name": "Tazeem",
             "collector_number": "41",
             "scryfall_id": UUID("76e5383d-ac12-4abc-aa30-15e99ded2d6f"),
         },
         {
-            "set": "PDCI",
+            "set": "DCI",
             "name": "Black Sun's Zenith",
             "collector_number": "68",
             "scryfall_id": UUID("dd88131a-2811-4a1f-bb9a-c82e12c1493b"),

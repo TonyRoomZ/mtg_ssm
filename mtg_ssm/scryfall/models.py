@@ -142,6 +142,7 @@ class ScryBorderColor(str, Enum):
     GOLD = "gold"
     SILVER = "silver"
     WHITE = "white"
+    YELLOW = "yellow"
 
 
 class ScryFinish(str, Enum):
