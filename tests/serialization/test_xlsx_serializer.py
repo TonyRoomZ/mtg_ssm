@@ -12,7 +12,7 @@ from mtg_ssm.containers.bundles import ScryfallDataSet
 from mtg_ssm.containers.collection import MagicCollection
 from mtg_ssm.containers.counts import CountType, ScryfallCardCount
 from mtg_ssm.containers.indexes import Oracle
-from mtg_ssm.serialization import xlsx
+from mtg_ssm.serialization import xlsx_serializer
 
 
 @pytest.fixture(scope="session")
@@ -43,14 +43,14 @@ def oracle(scryfall_data: ScryfallDataSet) -> Oracle:
 def test_create_all_sets(snapshot: SnapshotAssertion, oracle: Oracle) -> None:
     book = openpyxl.Workbook()
     sheet = book.create_sheet()
-    xlsx.create_all_sets(sheet, oracle.index)
+    xlsx_serializer.create_all_sets(sheet, oracle.index)
     assert [[cell.value for cell in row] for row in sheet.rows] == snapshot(name=str(sheet.title))
 
 
 def test_create_haverefs(oracle: Oracle) -> None:
     fem_thallids = [c for c in oracle.index.name_to_cards["Thallid"] if c.set == "fem"]
     fem_thallids.sort(key=lambda c: c.collector_number)
-    haverefs = xlsx.create_haverefs(oracle.index, "fem", fem_thallids)
+    haverefs = xlsx_serializer.create_haverefs(oracle.index, "fem", fem_thallids)
     assert haverefs == "SUM('FEM'!A2:A5)"
 
 
@@ -76,14 +76,14 @@ def test_create_haverefs(oracle: Oracle) -> None:
 def test_get_references(
     oracle: Oracle, name: str, exclude_sets: Optional[Set[str]], expected: str
 ) -> None:
-    print_refs = xlsx.get_references(oracle.index, name, exclude_sets=exclude_sets)
+    print_refs = xlsx_serializer.get_references(oracle.index, name, exclude_sets=exclude_sets)
     assert print_refs == expected
 
 
 def test_create_all_cards_sheet(snapshot: SnapshotAssertion, oracle: Oracle) -> None:
     book = openpyxl.Workbook()
     sheet = book.create_sheet()
-    xlsx.create_all_cards(sheet, oracle.index)
+    xlsx_serializer.create_all_cards(sheet, oracle.index)
     assert [[cell.value for cell in row] for row in sheet.rows] == snapshot(name=str(sheet.title))
 
 
@@ -99,7 +99,7 @@ def test_create_set_sheet(snapshot: SnapshotAssertion, oracle: Oracle) -> None:
     collection = MagicCollection(oracle=oracle, counts=card_counts)
     book = openpyxl.Workbook()
     sheet = book.create_sheet()
-    xlsx.create_set_sheet(sheet, collection, "ice")
+    xlsx_serializer.create_set_sheet(sheet, collection, "ice")
     assert [[cell.value for cell in row] for row in sheet.rows] == snapshot(name=str(sheet.title))
 
 
@@ -113,7 +113,7 @@ def test_write(snapshot: SnapshotAssertion, oracle: Oracle, tmp_path: Path) -> N
     }
     collection = MagicCollection(oracle=oracle, counts=card_counts)
 
-    serializer = xlsx.XlsxDialect()
+    serializer = xlsx_serializer.XlsxDialect()
     serializer.write(xlsx_path, collection)
 
     workbook = openpyxl.load_workbook(filename=xlsx_path)
@@ -170,12 +170,12 @@ def test_rows_from_workbook(
         for row in rows:
             worksheet.append(row)
     del workbook["Sheet"]
-    assert list(xlsx.rows_for_workbook(workbook, skip_sheets=skip_sheets)) == expected
+    assert list(xlsx_serializer.rows_for_workbook(workbook, skip_sheets=skip_sheets)) == expected
 
 
 def test_read_from_file(oracle: Oracle, tmp_path: Path) -> None:
     xlsx_path = tmp_path / "infile.xlsx"
-    serializer = xlsx.XlsxDialect()
+    serializer = xlsx_serializer.XlsxDialect()
     workbook = openpyxl.Workbook()
     sheet = workbook["Sheet"]
     sheet.title = "S00"

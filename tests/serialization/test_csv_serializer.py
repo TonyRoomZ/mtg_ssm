@@ -14,7 +14,7 @@ from mtg_ssm.containers.collection import MagicCollection
 from mtg_ssm.containers.counts import ScryfallCardCount
 from mtg_ssm.containers.indexes import Oracle
 from mtg_ssm.scryfall.models import ScryCard
-from mtg_ssm.serialization import csv
+from mtg_ssm.serialization import csv_serializer
 
 TEST_CARD_ID = UUID("57f25ead-b3ec-4c40-972d-d750ed2f5319")
 
@@ -32,7 +32,7 @@ def oracle(scryfall_data: ScryfallDataSet) -> Oracle:
 
 
 def test_header() -> None:
-    assert csv.CSV_HEADER == [
+    assert csv_serializer.CSV_HEADER == [
         "set",
         "name",
         "collector_number",
@@ -45,7 +45,7 @@ def test_header() -> None:
 def test_row_for_card(id_to_card: Dict[UUID, ScryCard]) -> None:
     card = id_to_card[TEST_CARD_ID]
     card_counts = {counts.CountType.NONFOIL: 3, counts.CountType.FOIL: 5}
-    csv_row = csv.row_for_card(card, card_counts)
+    csv_row = csv_serializer.row_for_card(card, card_counts)
     assert csv_row == {
         "set": "PHOP",
         "name": "Stairs to Infinity",
@@ -59,7 +59,7 @@ def test_row_for_card(id_to_card: Dict[UUID, ScryCard]) -> None:
 def test_rows_for_cards_verbose(oracle: Oracle) -> None:
     card_counts: ScryfallCardCount = {TEST_CARD_ID: {counts.CountType.NONFOIL: 3}}
     collection = MagicCollection(oracle=oracle, counts=card_counts)
-    rows = csv.rows_for_cards(collection, True)
+    rows = csv_serializer.rows_for_cards(collection, True)
     assert list(rows) == [
         {
             "set": "PDCI",
@@ -92,7 +92,7 @@ def test_rows_for_cards_verbose(oracle: Oracle) -> None:
 def test_rows_for_cards_terse(oracle: Oracle) -> None:
     card_counts: counts.ScryfallCardCount = {TEST_CARD_ID: {counts.CountType.NONFOIL: 3}}
     collection = MagicCollection(oracle=oracle, counts=card_counts)
-    rows = csv.rows_for_cards(collection, False)
+    rows = csv_serializer.rows_for_cards(collection, False)
     assert list(rows) == [
         {
             "set": "PHOP",
@@ -110,7 +110,7 @@ def test_write_verbose(snapshot: SnapshotAssertion, oracle: Oracle, tmp_path: Pa
         TEST_CARD_ID: {counts.CountType.NONFOIL: 3, counts.CountType.FOIL: 7}
     }
     collection = MagicCollection(oracle=oracle, counts=card_counts)
-    serializer = csv.CsvFullDialect()
+    serializer = csv_serializer.CsvFullDialect()
     serializer.write(csv_path, collection)
     with csv_path.open("rt", encoding="utf-8") as csv_file:
         assert csv_file.read() == snapshot
@@ -121,7 +121,7 @@ def test_write_terse(snapshot: SnapshotAssertion, oracle: Oracle, tmp_path: Path
     card_counts: counts.ScryfallCardCount = {TEST_CARD_ID: {counts.CountType.NONFOIL: 3}}
     collection = MagicCollection(oracle=oracle, counts=card_counts)
 
-    serializer = csv.CsvTerseDialect()
+    serializer = csv_serializer.CsvTerseDialect()
     serializer.write(csv_path, collection)
     with csv_path.open("rt", encoding="utf-8") as csv_file:
         assert csv_file.read() == snapshot
@@ -138,7 +138,7 @@ def test_read(oracle: Oracle, tmp_path: Path) -> None:
                 """
             )
         )
-    serializer = csv.CsvFullDialect()
+    serializer = csv_serializer.CsvFullDialect()
     collection = serializer.read(csv_path, oracle)
     assert collection.counts == {
         TEST_CARD_ID: {counts.CountType.NONFOIL: 3, counts.CountType.FOIL: 7}
